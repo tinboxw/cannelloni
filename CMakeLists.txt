@@ -5,6 +5,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 # Options
 option(SCTP_SUPPORT "SCTP_SUPPORT" ON)
+option(USE_GENERIC_FORMAT "USE_GENERIC_FORMAT" ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -29,6 +30,11 @@ CONFIGURE_FILE(
 )
 
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
+
+if(USE_GENERIC_FORMAT)
+  add_definitions(-DUSE_GENERIC_FORMAT)
+  message(STATUS "Use generic format (Can DTU Format)")
+endif()
 
 add_executable(cannelloni cannelloni.cpp)
 add_library(addsources STATIC

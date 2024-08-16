@@ -44,6 +44,8 @@
 #include "make_unique.h"
 #include "parser.h"
 
+using namespace cannelloni;
+
 UDPThread::UDPThread(const struct debugOptions_t &debugOptions,
                      const struct UDPThreadParams &params)
   : ConnectionThread()

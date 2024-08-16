@@ -54,6 +54,8 @@
 #include "parser.h"
 #include "tcpthread.h"
 
+using namespace cannelloni;
+
 TCPThread::TCPThread(const struct debugOptions_t &debugOptions,
                      const struct TCPThreadParams &params)
    : ConnectionThread()
