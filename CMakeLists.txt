@@ -1,10 +1,16 @@
 cmake_minimum_required(VERSION 3.12)
-project(cannelloni)
+project(cannelloni
+        VERSION ${PROJECT_VERSION}
+        DESCRIPTION "Soft CAN DTU")
+
+if(NOT DEFINED CMAKE_INSTALL_PREFIX)
+  set(CMAKE_INSTALL_PREFIX "/opt/obss/candtu")
+endif ()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 
 # Options
-option(SCTP_SUPPORT "SCTP_SUPPORT" ON)
+option(SCTP_SUPPORT "SCTP_SUPPORT" OFF)
 option(USE_GENERIC_FORMAT "USE_GENERIC_FORMAT" ON)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -75,5 +81,50 @@ target_link_libraries(cannelloni addsources cannelloni-common-static pthread)
 target_compile_features(cannelloni PRIVATE cxx_auto_type)
 target_compile_features(addsources PRIVATE cxx_auto_type)
 
-install(TARGETS cannelloni DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS cannelloni-common DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS cannelloni DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
+install(TARGETS cannelloni-common DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
+install(FILES service/startup.sh DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin/)
+
+if(UNIX)
+  # 通过configure_file将变量替换到config.h
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/service/obss-candtu.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/service/obss-candtu.service"
+  )
+  install(
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/service/obss-candtu.service"
+    DESTINATION /etc/systemd/system/
+    #FILES_MATCHING PATTERN "*.service"
+  )
+endif ()
+
+
+# 可选：指定兼容的架构
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+else ()
+  set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+endif ()
+
+# 配置CPack的DEB打包参数
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PRODUCT_NAME "obss-${PRODUCT_VERSION}")
+set(CPACK_PACKAGE_NAME "${CPACK_PRODUCT_NAME}-candtu")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}-0focal")
+set(CPACK_PACKAGE_CONTACT "Your Name <your.email@example.com>")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "tinbox.wu") # Maintainer for debian
+set(CPACK_PACKAGE_DESCRIPTION "Soft DTU based on CAN implementation")
+set(CPACK_PACKAGE_VENDOR "sword")
+#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.27), libstdc++6 (>= 7)")
+# obts-1.0.0-pilot_0.0.0-0focal_amd64.deb
+# obts-1.0.0-pilot_0.0.0-0focal_amd64.deb
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_${CPACK_PACKAGE_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
+
+# 可选：设置安装目录
+set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PATH}")
+
+# 可选：设置安装后的脚本
+#set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/postinst;${CMAKE_CURRENT_SOURCE_DIR}/postrm")
+
+# 初始化CPack
+include(CPack)

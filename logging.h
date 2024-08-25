@@ -51,17 +51,17 @@ inline void printCANInfo(const canfd_frame *frame) {
     std::cout << "LC|";
   }
   if (frame->can_id & CAN_EFF_FLAG) {
-    std::cout << "EFF Frame ID[" << std::setw(5) << std::dec << (frame->can_id & CAN_EFF_MASK) << "]";
+    std::cout << "EFF Frame ID[" << std::setw(5) << std::hex << (frame->can_id & CAN_EFF_MASK) << "]";
   } else {
-    std::cout << "SFF Frame ID[" << std::setw(5) << std::dec << (frame->can_id & CAN_SFF_MASK) << "]";
+    std::cout << "SFF Frame ID[" << std::setw(5) << std::hex << (frame->can_id & CAN_SFF_MASK) << "]";
   }
   if (frame->can_id & CAN_ERR_FLAG)
-    std::cout << "\t ERROR\t";
+    std::cout << "  ERROR  ";
   else
-    std::cout << "\t Length:" << std::dec << (int) canfd_len(frame) << "\t";
+    std::cout << "  Length:" << std::dec << (int) canfd_len(frame) << "  ";
 
   if (frame->can_id & CAN_RTR_FLAG)  {
-      std::cout << "\tREMOTE";
+      std::cout << "  REMOTE";
   } else {
     /* This will also contain the error information */
     for (uint8_t i=0; i < canfd_len(frame); i++)
