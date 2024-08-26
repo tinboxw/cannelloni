@@ -40,6 +40,11 @@ build:
     - bash ./build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
+      --arch=arm64
+    - bash ./build.sh
+      --product-version=$PRODUCT_VERSION
+      --project-version=$PROJECT_VERSION
+      --arch=amd64
   artifacts:
    # 后续stage需要使用输出内容，必须打开artifacts
    paths:
@@ -140,6 +145,11 @@ build-devel:
     - bash ./build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
+      --arch=arm64
+    - bash ./build.sh
+      --product-version=$PRODUCT_VERSION
+      --project-version=$PROJECT_VERSION
+      --arch=amd64
   artifacts:
     paths:
       - output/*
