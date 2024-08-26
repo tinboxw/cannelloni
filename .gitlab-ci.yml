@@ -1,0 +1,145 @@
+
+stages:
+  - build
+  - upload
+  - release
+
+build:
+  stage: build
+  image:
+    # 复用 ros:noetic-robot-focal 镜像
+    # 因为其包含有一整套cmake、make、gcc/g++环境（缺少交叉斌阿姨环境，需要启动时安装）
+    name: ros:noetic-robot-focal
+    entrypoint: [ "" ]
+  variables:
+    # Disable shallow cloning so that goreleaser can diff between tags to
+    # generate a changelog.
+    GIT_DEPTH: 0
+    GITLAB_TOKEN: $CI_JOB_TOKEN
+    BUILD_LOCATION: ""
+    BUILD_VEHICLE: ""
+    BUILD_VEHICLE_TRANSMISSION: ""
+    PRODUCT_VERSION: 1.0.0
+  only:
+    refs:
+      - tags
+  before_script:
+    #- echo "gitlab-ci-token:$CI_JOB_TOKEN"
+    - apt update
+    #- apt install -y curl python3-bloom fakeroot dh-make libboost-all-dev libgeographic-dev libprotobuf-c-dev ros-noetic-geodesy
+    # 交叉编译环境
+    #- apt install -y dpkg-cross dpkg-dev debhelper build-essential crossbuild-essential-arm64
+    - apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+  script:
+    # GITLAB_TOKEN set in variables
+    # GITLAB_TOKEN 在Gitlab的CICD中定义，需要 api scope
+    #- source /opt/ros/noetic/setup.bash
+    # 如果不指定 $BUILD_LOCATION/$BUILD_VEHICLE/$BUILD_VEHICLE_TRANSMISSION
+    # 为空，将打包所有版本
+    - PROJECT_VERSION=echo $CI_COMMIT_REF_NAME|sed 's/^v//'
+    - bash ./build.sh
+      --product-version=$PRODUCT_VERSION
+      --project-version=$PROJECT_VERSION
+  artifacts:
+   # 后续stage需要使用输出内容，必须打开artifacts
+   paths:
+     - output/*
+
+variables:
+  # 23 # default: https://git.ibrifuture.com/devops/versions
+  UPLOAD_TO_COMMON_PROJECT_ID: 23
+  #PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/23/packages/generic/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME"
+
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  only:
+    refs:
+      - tags
+  script:
+    - cd output;
+    - zip_files=`ls *`;
+    - |
+      for f in $zip_files;do 
+        echo curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $f "$PACKAGE_REGISTRY_URL/$f";
+        curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file $f "$PACKAGE_REGISTRY_URL/$f";
+       done
+  dependencies:
+    # 显示设置依赖build的artifacts
+    - build
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  only:
+    refs:
+      - tags
+  script:
+    - cd output;
+    - zip_files=`ls *`;
+    - args="--name \"$CI_COMMIT_TAG\" --tag-name \"$CI_COMMIT_TAG\" ";
+    - |
+      for f in $zip_files;do 
+        args="$args --assets-link \"{\\\"name\\\":\\\"$f\\\",\\\"url\\\":\\\"${PACKAGE_REGISTRY_URL}/${f}\\\"}\" ";
+        echo $args;
+      done;
+    - release-cli create $args
+  dependencies:
+    - build
+
+release-devel:
+  stage: release
+  only:
+    refs:
+      - branches
+  script:
+    - echo "release ignore when devel build"
+
+upload-devel:
+  stage: upload
+  only:
+    refs:
+      - branches
+  script:
+    - echo "upload ignore when devel build"
+
+build-devel:
+  stage: build
+  image:
+    name: ros:noetic-robot-focal
+    entrypoint: [ "" ]
+  variables:
+    # Disable shallow cloning so that goreleaser can diff between tags to
+    # generate a changelog.
+    GIT_DEPTH: 0
+    GITLAB_TOKEN: $CI_JOB_TOKEN
+    BUILD_LOCATION: "chongqing_ibrifuture_xbv"
+    BUILD_VEHICLE: "jetta"
+    BUILD_VEHICLE_TRANSMISSION: "manual"
+    PRODUCT_VERSION: "1.0.0"
+  only:
+    refs:
+      - branches
+  before_script:
+    #- echo "gitlab-ci-token:$CI_JOB_TOKEN"
+    - apt update
+    #- echo "gitlab-ci-token:$CI_JOB_TOKEN"
+    - apt update
+    #- apt install -y curl python3-bloom fakeroot dh-make libboost-all-dev libgeographic-dev libprotobuf-c-dev ros-noetic-geodesy
+    # 交叉编译环境
+    #- apt install -y dpkg-cross dpkg-dev debhelper build-essential crossbuild-essential-arm64
+    - apt install -y gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+  script:
+    # GITLAB_TOKEN set in variables
+    # GITLAB_TOKEN 在Gitlab的CICD中定义，需要 api scope
+    #- source /opt/ros/noetic/setup.bash
+    # 如果不指定 $BUILD_LOCATION/$BUILD_VEHICLE/$BUILD_VEHICLE_TRANSMISSION
+    # 为空，将打包所有版本
+    - PROJECT_VERSION=echo $CI_COMMIT_REF_NAME|sed 's/^v//'
+    - bash ./build.sh
+      --product-version=$PRODUCT_VERSION
+      --project-version=$PROJECT_VERSION
+  artifacts:
+    paths:
+      - output/*

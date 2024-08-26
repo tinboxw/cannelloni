@@ -22,7 +22,8 @@ function say_usage(){
   log_y "  -d|--debug        Build the debug version"
   log_y "  -i|--install      Specified the install directory"
   log_y "  -a|--arch         Support [amd64|arm64], default use current system arch"
-  log_y "  -v|--version      Specified Project version, default 0.0.0"
+  log_y "  --product-version Specified Product version, default 0.0.0"
+  log_y "  --project-version Specified Project version, default 0.0.0"
   log_y ""
 }
 
@@ -47,7 +48,7 @@ SCRIPT_DIR=$(dirname "$SCRIPT_POS")
 CODE_DIR=$SCRIPT_DIR/..
 BUILD_DIR=
 TOOLCHAIN_FILE=
-PKGS_DIR=$CODE_DIR/packages
+PKGS_DIR="${CODE_DIR}/output"
 
 ARCH=
 INSTALL_DIR="opt/obss/candtu"
@@ -64,7 +65,7 @@ until [ $# -eq 0 ]; do
 
   case "$1" in
     #--version) show_version; exit 0;;
-    -h|--help) usage; exit 0;;
+    -h|--help) say_usage; exit 0;;
 
     --product-version) PRODUCT_VERSION=$2; shift 2;;
     --product-version=*) PRODUCT_VERSION=$value; shift 1;;
