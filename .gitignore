@@ -1,0 +1,8 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+*.a
+cmake_install.cmake
+config.h
+cannelloni
+tags

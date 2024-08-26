@@ -1,0 +1,15 @@
+[Unit]
+Description=CAN DTU for OBSS
+Wants=multi-user.target
+After=multi-user.target
+
+[Install]
+WantedBy=multi-user.target
+Alias=obss-candtu.service
+
+[Service]
+Type=simple
+KillMode=control-group
+Restart=always
+RestartSec=3s
+ExecStart=bash -c @CMAKE_INSTALL_PREFIX@/sbin/startup.sh
