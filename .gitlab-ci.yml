@@ -141,7 +141,7 @@ build-devel:
     #- source /opt/ros/noetic/setup.bash
     # 如果不指定 $BUILD_LOCATION/$BUILD_VEHICLE/$BUILD_VEHICLE_TRANSMISSION
     # 为空，将打包所有版本
-    - PROJECT_VERSION=echo $CI_COMMIT_REF_NAME|sed 's/^v//'
+    - PROJECT_VERSION="0.0.0"
     - bash ./build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
