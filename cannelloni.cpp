@@ -54,6 +54,7 @@
 #include "logging.h"
 #include "make_unique.h"
 #include <memory>
+#include "parser.h"
 
 #define MIN_LINK_MTU_SIZE 100
 
@@ -82,6 +83,7 @@ void printUsage() {
   std::cout << "\t -T table.csv \t\t path to csv with individual timeouts" << std::endl;
   std::cout << "\t -s           \t\t enable frame sorting" << std::endl;
   std::cout << "\t -p           \t\t no peer checking" << std::endl;
+  std::cout << "\t -F           \t\t can id filter, e.g. 123:7FF" << std::endl;
   std::cout << "\t -d [cubt]\t\t enable debug, can be any of these: " << std::endl;
   std::cout << "\t\t\t c : enable debugging of can frames" << std::endl;
 #ifdef SCTP_SUPPORT
@@ -170,6 +172,7 @@ int main(int argc, char **argv) {
   bool forkIntoBackground = false;
   uint16_t linkMtuSize = 1500;
   TCPThreadRole tcpRole = TCP_CLIENT;
+  std::string filter;
 #ifdef SCTP_SUPPORT
   SCTPThreadRole sctpRole = SCTP_CLIENT;
 #endif
@@ -186,7 +189,7 @@ int main(int argc, char **argv) {
 
   struct debugOptions_t debugOptions = { /* can */ 0, /* udp */ 0, /* buffer */ 0, /* timer */ 0 };
 
-  const std::string argument_options = "C:l:L:r:R:I:t:T:d:m:P:hsp46f"
+  const std::string argument_options = "C:l:L:r:R:I:t:T:d:m:P:F:hsp46f"
 #ifdef SCTP_SUPPORT
   "S:";
 #else
@@ -298,6 +301,10 @@ int main(int argc, char **argv) {
         break;
       case 'f':
         forkIntoBackground = true;
+        break;
+      case 'F':
+        filter = std::string(optarg);
+        setFilter(filter);
         break;
       case 'P':
         pidFilePath = std::string(optarg);

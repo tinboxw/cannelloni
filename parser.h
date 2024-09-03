@@ -41,6 +41,7 @@ void parseFrames(uint16_t len, const uint8_t* buffer,
  * @return The size of the encoded frame.
  */
 size_t encodeFrame(uint8_t *data, canfd_frame *frame);
+void setFilter(const std::string& filter);
 
 /**
  * Builds Cannelloni packet from provided list of CAN frames

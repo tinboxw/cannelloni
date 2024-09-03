@@ -37,14 +37,16 @@ build:
     # 如果不指定 $BUILD_LOCATION/$BUILD_VEHICLE/$BUILD_VEHICLE_TRANSMISSION
     # 为空，将打包所有版本
     - PROJECT_VERSION=echo $CI_COMMIT_REF_NAME|sed 's/^v//'
-    - bash ./build.sh
+    - bash ./builder/build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
       --arch=arm64
-    - bash ./build.sh
+      -i /opt/obss/candtu
+    - bash ./builder/build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
       --arch=amd64
+      -i /opt/obss/candtu
   artifacts:
    # 后续stage需要使用输出内容，必须打开artifacts
    paths:
@@ -142,14 +144,16 @@ build-devel:
     # 如果不指定 $BUILD_LOCATION/$BUILD_VEHICLE/$BUILD_VEHICLE_TRANSMISSION
     # 为空，将打包所有版本
     - PROJECT_VERSION=echo $CI_COMMIT_REF_NAME|sed 's/^v//'
-    - bash ./build.sh
+    - bash ./builder/build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
       --arch=arm64
-    - bash ./build.sh
+      -i /opt/obss/candtu
+    - bash ./builder/build.sh
       --product-version=$PRODUCT_VERSION
       --project-version=$PROJECT_VERSION
       --arch=amd64
+      -i /opt/obss/candtu
   artifacts:
     paths:
       - output/*

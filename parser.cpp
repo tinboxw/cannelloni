@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdexcept>
 #include <sys/types.h>
+#include <iostream>
+#include <iomanip>
 
 
 #ifndef USE_GENERIC_FORMAT
@@ -272,7 +274,6 @@ void parseFrames(uint16_t len, const uint8_t* buffer, std::function<canfd_frame*
         }
     }
 }
-
 size_t encodeFrame(uint8_t *data, canfd_frame *frame) {
     using namespace cannelloni;
     //uint8_t *dataOrig = data;
@@ -294,6 +295,32 @@ size_t encodeFrame(uint8_t *data, canfd_frame *frame) {
     }
 
     return sizeof(*dst) + len;
+}
+
+static std::string g_filter;
+static uint32_t g_canid;
+static uint32_t g_mask;
+void setFilter(const std::string& filter) {
+    g_filter = filter;
+
+    auto pos = filter.find(":");
+    if (pos != std::string::npos) {
+        auto id = filter.substr(0,pos);
+        auto mask = filter.substr(pos + 1);
+        g_canid = std::stoul(id.c_str(), nullptr, 16);
+        g_mask = std::stoul(mask.c_str(), nullptr, 16);
+        std::cout<< "filter rule: "<<std::hex << g_canid << ":" <<std::hex << g_mask<<std::endl;
+    }
+}
+
+static bool isEnabled(canfd_frame *frame) {
+    if(g_filter.empty())return true;
+
+    auto x = frame->can_id & g_mask;
+    if(x == g_canid) {
+        return true;
+    }
+    return false;
 }
 
 uint8_t* buildPacket(uint16_t len, uint8_t* packetBuffer,
@@ -318,8 +345,11 @@ uint8_t* buildPacket(uint16_t len, uint8_t* packetBuffer,
             handleOverflow(frames, it);
             break;
         }
-        data += encodeFrame(data, frame);
-        frameCount++;
+
+        if(isEnabled(frame)) {
+            data += encodeFrame(data, frame);
+            frameCount++;
+        }
     }
     
     return data; // return end of buffer
